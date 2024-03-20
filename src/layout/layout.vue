@@ -38,13 +38,13 @@
             <div slot="title"> <vsd-icon name="lock" class="vsd-mr-5 m-color"/>修改密码 </div>
             <el-form :model="dialogForm" :rules="dialogrules" label-position="top" ref="dialogForm" autocomplete="off">
                 <el-form-item label="" prop="passwordold">
-                    <el-input  v-model.trim="dialogForm.passwordold" auto-complete="false" type="password" autocomplete="new-password" placeholder="请输入原密码"></el-input>
+                    <el-input  v-model.trim="dialogForm.passwordold" auto-complete="false" type="password" autocomplete="new-password" placeholder="请输入原密码" show-password></el-input>
                 </el-form-item>
                 <el-form-item label="" prop="password">
-                    <el-input v-model.trim="dialogForm.password" type="password" auto-complete="false" autocomplete="new-password" placeholder="请输入新密码"></el-input>
+                    <el-input v-model.trim="dialogForm.password" type="password" auto-complete="false" autocomplete="new-password" placeholder="请输入新密码" show-password></el-input>
                 </el-form-item>
                 <el-form-item label="" prop="pwdSure">
-                    <el-input v-model.trim="dialogForm.pwdSure" type="password" auto-complete="false" autocomplete="new-password" placeholder="请输入确认密码"></el-input>
+                    <el-input v-model.trim="dialogForm.pwdSure" type="password" auto-complete="false" autocomplete="new-password" placeholder="请输入确认密码" show-password></el-input>
                 </el-form-item>
                 <el-form-item>
                     <p class="i-color">注：密码必须包括字母、数字、特殊字符（*&@#等），长度为8-14位</p>
@@ -110,19 +110,26 @@ export default {
 	    };
 	    var validatePass2 = (rule, value, callback) => {
 	      	if (value !== this.dialogForm.password) {
-	        	callback(new Error('两次输入密码不一致!'));
+	        	callback(new Error('两次输入密码不一致！'));
 	      	} else {
 	        	callback();
 	      	}
 	    };
-        var psdValid = (rule, value, callback)=>{
-            var pwdReg = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,10}$/;
-            if(!pwdReg.test(value)){
-                callback(new Error('密码必须包含大小写字母及数字，且长度为8-10位!'));
-            }else{
+
+        var psdValid = (rule, value, callback) => {
+            //密码必须是8位以上、必须含有字母、数字、特殊符号
+            var pwdReg1 = /^(?=.*\d)(?=.*[a-zA-Z])(?=.*[*&@#])[\da-zA-Z*&@#]{8,14}$/; 
+             //密码不能含有3个连续数字
+            var pwdReg2 = /(123|234|345|456|567|678|789|012)/;
+            if (!pwdReg1.test(value)) {
+                callback(new Error("密码必须包含大小写字母、数字、特殊符号，且长度为8-14位！"));
+            } else if (pwdReg2.test(value)) {
+                callback(new Error("密码不能含有3个连续数字！"));
+            } else {
                 callback();
             }
-        }
+        };
+
         return {
             showSHDF:false,
             pageInfo:{},
@@ -139,13 +146,13 @@ export default {
                 ],
                 password: [
                     {required: true, message: '请输入新密码', trigger: 'blur'},
-                    {min: 8, message: '密码必须包含大小写字母及数字，且长度不低于8位!', trigger: 'blur'},
-                    {validator: validatePass, trigger: 'blur'},
-                    // {validator: psdValid, trigger: 'blur'},
+                    {min: 8, message: '密码必须包含大小写字母、数字、特殊符号，且长度为8-14位!', trigger: 'blur'},
+                    {required: true,validator: validatePass, trigger: 'blur'},
+                    {required: true,validator: psdValid, trigger: 'blur'},
                 ],
                 pwdSure: [
                     {required: true, message: '请输入确认密码', trigger: 'blur'},
-                    {validator: validatePass2, trigger: 'blur'}
+                    {required: true, validator: validatePass2, trigger: 'blur'},
                 ]
             },
         }

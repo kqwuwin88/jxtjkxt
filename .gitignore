@@ -3,6 +3,7 @@ node_modules
 .svn
 .zip
 /dist
+/antispam2850
 
 # local env files
 .env.local

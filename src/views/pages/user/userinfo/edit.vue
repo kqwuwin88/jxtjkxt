@@ -6,12 +6,12 @@
                 <el-form-item label="账号" prop="userName" :rules="{ required: true, message: '请输入账号', trigger: 'blur' }">
                     <el-input v-model="formView.userName" :disabled="isEdit" placeholder="请输入账号" maxlength="30" show-word-limit></el-input>
                 </el-form-item>
-                <el-form-item label="密码" v-if="!isEdit" prop="password" :rules="{ required: true, message: '请输入密码', trigger: 'blur' }">
-                    <el-input v-model="formView.password" placeholder="请输入密码" maxlength="20" show-word-limit></el-input>
+                <el-form-item label="密码" v-if="!isEdit" prop="password" :rules="{ required: true,  trigger: 'blur',validator: ruleRepsd }">
+                    <el-input v-model="formView.password" placeholder="请输入密码" maxlength="14" show-word-limit></el-input>
                     <span class="form-item-trans">注 : 密码须包含字母、数字及特殊字符(如*&@#等)，长度为8~14位</span>
                 </el-form-item>
-                <el-form-item label="再次输入密码" v-if="!isEdit" prop="passwordSure" :rules="{ required: true, trigger: 'blur',validator: ruleRepsd }">
-                    <el-input v-model="formView.passwordSure" placeholder="请输入密码" maxlength="20" show-word-limit></el-input>
+                <el-form-item label="再次输入密码" v-if="!isEdit" prop="passwordSure" :rules="{ required: true,trigger: 'blur',validator: ruleRepsd }">
+                    <el-input v-model="formView.passwordSure" placeholder="请再次输入密码" maxlength="14" show-word-limit></el-input>
                 </el-form-item>
                 <el-form-item label="手机号码" prop="msisdn" :rules="{ required: true, message: '请输入手机号码', trigger: 'blur' }">
                     <el-input v-model="formView.msisdn" oninput="value=value.replace(/[^\d]/g,'')" placeholder="请输入手机号码" maxlength="11" show-word-limit></el-input>
@@ -60,11 +60,20 @@ export default {
                 groupId:'',
 			},
             ruleRepsd: (rule, value, callback) => {
+                //密码必须是8位以上、必须含有字母、数字、特殊符号
+                var pwdReg1 = /^(?=.*\d)(?=.*[a-zA-Z])(?=.*[*&@#])[\da-zA-Z*&@#]{8,14}$/; 
+                //密码不能含有3个连续数字
+                var pwdReg2 = /(123|234|345|456|567|678|789|012)/;
                 if (value === '') {
-                    callback(new Error('请输入'));
+                    callback(new Error('请输入密码！'));
                 } else if (value !== this.formView.password) {
                     callback(new Error('两次输入密码不一致!'));
-                } else {
+                } else if(!pwdReg1.test(value)){
+                    callback(new Error("密码必须包含大小写字母、数字、特殊符号，且长度为8-14位！"));
+                } else if(pwdReg2.test(value)){
+                    callback(new Error("密码不能含有3个连续数字！"));
+                }
+                else {
                     callback();
                 }
             },

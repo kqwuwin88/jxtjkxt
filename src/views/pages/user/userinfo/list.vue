@@ -41,12 +41,12 @@
         </div>
         <el-dialog :visible.sync="dialogEditVisible" v-if="dialogEditVisible" append-to-body width="500px" class="custom-dialog" :close-on-click-modal="false">
             <div slot="title"> <vsd-icon :name="'edit'" class="vsd-mr-5 m-color"/>修改密码 </div>
-            <el-form :model="dialogEditForm" label-width="110px" label-position="left" ref="dialogEditForm">
-                <el-form-item label="密码" prop="password" :rules="{ required: true, message: '请输入密码', trigger: 'blur' }">
-                    <el-input v-model.trim="dialogEditForm.password" placeholder="请输入密码" show-word-limit></el-input>
+            <el-form :model="dialogEditForm" :rules="dialogrules" label-width="110px" label-position="left" ref="dialogEditForm">
+                <el-form-item label="密码" prop="password">
+                    <el-input v-model.trim="dialogEditForm.password" placeholder="请输入密码" show-password></el-input>
                 </el-form-item>
-                <el-form-item label="再次输入密码" prop="passwordSure" :rules="{ required: true, trigger: 'blur',validator: ruleRepsd }">
-                    <el-input v-model.trim="dialogEditForm.passwordSure" placeholder="请再次输入密码" show-word-limit></el-input>
+                <el-form-item label="再次输入密码" prop="passwordSure">
+                    <el-input v-model.trim="dialogEditForm.passwordSure" placeholder="请再次输入密码" show-password></el-input>
                 </el-form-item>
                 <el-form-item label-width="0" class="tip_form_item">
                     <p class="d-color">注 : 密码须包含字母、数字及特殊字符(如*&@#等)，长度为8~14位</p>
@@ -66,6 +66,33 @@ import moment from 'moment'
 import CryptoJS from 'crypto-js'
 export default {
 	data(){
+        var validatePass = (rule, value, callback) => {
+	      	if (this.dialogEditForm.pwdSure !== '') {
+		        this.$refs.dialogEditForm.validateField('passwordSure');
+	      	}
+	      	callback();
+	    };
+	    var validatePass2 = (rule, value, callback) => {
+	      	if (value !== this.dialogEditForm.password) {
+	        	callback(new Error('两次输入密码不一致！'));
+	      	} else {
+	        	callback();
+	      	}
+	    };
+
+        var psdValid = (rule, value, callback) => {
+            //密码必须是8位以上、必须含有字母、数字、特殊符号
+            var pwdReg1 = /^(?=.*\d)(?=.*[a-zA-Z])(?=.*[*&@#])[\da-zA-Z*&@#]{8,14}$/; 
+             //密码不能含有3个连续数字
+            var pwdReg2 = /(123|234|345|456|567|678|789|012)/;
+            if (!pwdReg1.test(value)) {
+                callback(new Error("密码必须包含大小写字母、数字、特殊符号，且长度为8-14位！"));
+            } else if (pwdReg2.test(value)) {
+                callback(new Error("密码不能含有3个连续数字！"));
+            } else {
+                callback();
+            }
+        };
 		return {
             pageInfo:{},
 			formInline:{
@@ -79,15 +106,19 @@ export default {
                 passwordSure:'',
                 id:'',
             },
-            ruleRepsd: (rule, value, callback) => {
-                if (value === '') {
-                    callback(new Error('请输入'));
-                } else if (value !== this.dialogEditForm.password) {
-                    callback(new Error('两次输入密码不一致!'));
-                } else {
-                    callback();
-                }
-            }
+
+            dialogrules:{
+                password: [
+                    {required: true, message: '请输入新密码', trigger: 'blur'},
+                    {min: 8, message: '密码必须包含大小写字母、数字、特殊符号，且长度为8-14位!', trigger: 'blur'},
+                    {required: true,validator: validatePass, trigger: 'blur'},
+                    {required: true,validator: psdValid, trigger: 'blur'},
+                ],
+                passwordSure: [
+                    {required: true, message: '请输入确认密码', trigger: 'blur'},
+                    {required: true, validator: validatePass2, trigger: 'blur'},
+                ]
+            },
 		}
 	},
     filters:{
